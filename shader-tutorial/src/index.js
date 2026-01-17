@@ -3,6 +3,12 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import vertexShader from "./shaders/vertexShader";
 import fragmentShader from "./shaders/fragmentShader";
+import * as dat from "lil-gui";
+import jpFlag from "./textures/jp-flag.png";
+// デバック
+const gui = new dat.GUI({ width: 300 });
+
+
 /**
  * Sizes
  */
@@ -21,15 +27,38 @@ const scene = new THREE.Scene();
  * Textures
  */
 const textureLoader = new THREE.TextureLoader();
+const flagTexture = textureLoader.load(jpFlag);
 
 // Geometry
 const geometry = new THREE.PlaneGeometry(1, 1, 32, 32);
 
 // Material
-const material = new THREE.RawShaderMaterial({
+const material = new THREE.ShaderMaterial({
   vertexShader: vertexShader,
   fragmentShader: fragmentShader,
+  transparent: true,
+  side: THREE.DoubleSide,
+  uniforms: {
+    uFrequency: { value: new THREE.Vector2(10, 5) },
+    uTime: { value: 0 },
+    uColor: { value: new THREE.Color("white")},
+    uTexture: { value: flagTexture }
+  }
 });
+
+// デバックを追加
+gui
+.add(material.uniforms.uFrequency.value, "x")
+.min(0)
+.max(20)
+.step(0.001)
+.name("frequencyX");
+gui
+.add(material.uniforms.uFrequency.value, "y")
+.min(0)
+.max(20)
+.step(0.001)
+.name("frequencyY")
 
 // Mesh
 const mesh = new THREE.Mesh(geometry, material);
@@ -77,6 +106,8 @@ const clock = new THREE.Clock();
 const animate = () => {
   //時間取得
   const elapsedTime = clock.getElapsedTime();
+  // console.log(elapsedTime);
+  material.uniforms.uTime.value = elapsedTime;
 
   controls.update();
 
