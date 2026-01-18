@@ -1,14 +1,12 @@
 import "./style.css";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import * as dat from "lil-gui";
 import vertexShader from "./shaders/vertexShader";
 import fragmentShader from "./shaders/fragmentShader";
-import * as dat from "lil-gui";
-import jpFlag from "./textures/jp-flag.png";
-// デバック
+
+
 const gui = new dat.GUI({ width: 300 });
-
-
 /**
  * Sizes
  */
@@ -27,7 +25,6 @@ const scene = new THREE.Scene();
  * Textures
  */
 const textureLoader = new THREE.TextureLoader();
-const flagTexture = textureLoader.load(jpFlag);
 
 // Geometry
 const geometry = new THREE.PlaneGeometry(1, 1, 32, 32);
@@ -36,34 +33,23 @@ const geometry = new THREE.PlaneGeometry(1, 1, 32, 32);
 const material = new THREE.ShaderMaterial({
   vertexShader: vertexShader,
   fragmentShader: fragmentShader,
-  transparent: true,
-  side: THREE.DoubleSide,
   uniforms: {
-    uFrequency: { value: new THREE.Vector2(10, 5) },
-    uTime: { value: 0 },
-    uColor: { value: new THREE.Color("white")},
-    uTexture: { value: flagTexture }
-  }
+    uWaveLength: { value: 0.2},
+    uFrequency: {value: new THREE.Vector2(5.0, 2.5)}
+  },
 });
 
-// デバックを追加
+// デバッグ
 gui
-.add(material.uniforms.uFrequency.value, "x")
+.add(material.uniforms.uWaveLength, "value")
 .min(0)
-.max(20)
+.max(1)
 .step(0.001)
-.name("frequencyX");
-gui
-.add(material.uniforms.uFrequency.value, "y")
-.min(0)
-.max(20)
-.step(0.001)
-.name("frequencyY")
+.name("uWaveLength");
 
 // Mesh
 const mesh = new THREE.Mesh(geometry, material);
-mesh.scale.y = 2 / 3;
-// mesh.rotation.x = Math.PI / 2;
+mesh.rotation.x = -Math.PI / 2;
 scene.add(mesh);
 
 window.addEventListener("resize", () => {
@@ -84,7 +70,7 @@ const camera = new THREE.PerspectiveCamera(
   0.1,
   100
 );
-camera.position.set(0.25, -0.25, 1);
+camera.position.set(0.2, 0.7, 0.7);
 scene.add(camera);
 
 // Controls
@@ -108,8 +94,6 @@ const clock = new THREE.Clock();
 const animate = () => {
   //時間取得
   const elapsedTime = clock.getElapsedTime();
-  // console.log(elapsedTime);
-  material.uniforms.uTime.value = elapsedTime;
 
   controls.update();
 
