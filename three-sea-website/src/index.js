@@ -29,13 +29,23 @@ const textureLoader = new THREE.TextureLoader();
 // Geometry
 const geometry = new THREE.PlaneGeometry(1, 1, 32, 32);
 
+// color
+const colorObject = {};
+colorObject.depthColor = "#2d81ae";
+colorObject.surfaceColor = "#66c1f9";
 // Material
 const material = new THREE.ShaderMaterial({
   vertexShader: vertexShader,
   fragmentShader: fragmentShader,
   uniforms: {
-    uWaveLength: { value: 0.2},
-    uFrequency: {value: new THREE.Vector2(5.0, 2.5)}
+    uWaveLength: { value: 0.38},
+    uFrequency: {value: new THREE.Vector2(6.6, 3.5)},
+    uTime: { value: 0 },
+    uWaveSpeed: { value: 0.75 },
+    uDepthColor: { value: new THREE.Color(colorObject.depthColor) },
+    uSurfaceColor: { value: new THREE.Color(colorObject.surfaceColor) },
+    uColorOffset: { value: 0.03 },
+    uColorMutiplier: { value: 9.0 },
   },
 });
 
@@ -46,7 +56,47 @@ gui
 .max(1)
 .step(0.001)
 .name("uWaveLength");
+gui
+.add(material.uniforms.uFrequency.value, "x")
+.min(0)
+.max(10)
+.step(0.001)
+.name("uFreqyuencyX");
+gui
+.add(material.uniforms.uFrequency.value, "y")
+.min(0)
+.max(10)
+.step(0.001)
+.name("uFreqyuencyY");
+gui
+.add(material.uniforms.uWaveSpeed, "value")
+.min(0)
+.max(4)
+.step(0.001)
+.name("uWaveSpeed");
+gui
+.add(material.uniforms.uColorOffset, "value")
+.min(0)
+.max(1)
+.step(0.001)
+.name("uColorOffset");
+gui
+.add(material.uniforms.uColorMutiplier, "value")
+.min(0)
+.max(10)
+.step(0.001)
+.name("uColorMutiplier");
 
+gui
+.addColor(colorObject, "depthColor")
+.onChange(() => {
+  material.uniforms.uDepthColor.value.set(colorObject.depthColor);
+});
+gui
+.addColor(colorObject, "surfaceColor")
+.onChange(() => {
+  material.uniforms.uSurfaceColor.value.set(colorObject.surfaceColor);
+});
 // Mesh
 const mesh = new THREE.Mesh(geometry, material);
 mesh.rotation.x = -Math.PI / 2;
@@ -94,7 +144,7 @@ const clock = new THREE.Clock();
 const animate = () => {
   //時間取得
   const elapsedTime = clock.getElapsedTime();
-
+  material.uniforms.uTime.value = elapsedTime;
   controls.update();
 
   renderer.render(scene, camera);
