@@ -4,7 +4,7 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import * as dat from "lil-gui";
 import vertexShader from "./shaders/vertexShader";
 import fragmentShader from "./shaders/fragmentShader";
-
+import skyImage from "./textures/sky.jpg";
 
 const gui = new dat.GUI({ width: 300 });
 /**
@@ -25,9 +25,10 @@ const scene = new THREE.Scene();
  * Textures
  */
 const textureLoader = new THREE.TextureLoader();
-
+const skyTexture = textureLoader.load(skyImage);
+scene.background = skyTexture;
 // Geometry
-const geometry = new THREE.PlaneGeometry(1, 1, 32, 32);
+const geometry = new THREE.PlaneGeometry(8, 8, 512, 512);
 
 // color
 const colorObject = {};
@@ -46,6 +47,9 @@ const material = new THREE.ShaderMaterial({
     uSurfaceColor: { value: new THREE.Color(colorObject.surfaceColor) },
     uColorOffset: { value: 0.03 },
     uColorMutiplier: { value: 9.0 },
+    uSmallWaveElevation: { value: 0.15 },
+    uSmallWaveFrequency: { value: 3.0},
+    uSmallWaveSpeed: { value: 0.2 }
   },
 });
 
@@ -86,7 +90,24 @@ gui
 .max(10)
 .step(0.001)
 .name("uColorMutiplier");
-
+gui
+.add(material.uniforms.uSmallWaveElevation, "value")
+.min(0)
+.max(10)
+.step(0.001)
+.name("uSmallelevation");
+gui
+.add(material.uniforms.uSmallWaveFrequency, "value")
+.min(0)
+.max(30)
+.step(0.001)
+.name("uSmallWaveFrequency");
+gui
+.add(material.uniforms.uSmallWaveSpeed, "value")
+.min(0)
+.max(4)
+.step(0.001)
+.name("uSmallWaveSpeed");
 gui
 .addColor(colorObject, "depthColor")
 .onChange(() => {
@@ -97,6 +118,8 @@ gui
 .onChange(() => {
   material.uniforms.uSurfaceColor.value.set(colorObject.surfaceColor);
 });
+
+gui.show(false);
 // Mesh
 const mesh = new THREE.Mesh(geometry, material);
 mesh.rotation.x = -Math.PI / 2;
@@ -120,12 +143,12 @@ const camera = new THREE.PerspectiveCamera(
   0.1,
   100
 );
-camera.position.set(0.2, 0.7, 0.7);
+camera.position.set(0, 0.23, 0);
 scene.add(camera);
 
 // Controls
-const controls = new OrbitControls(camera, canvas);
-controls.enableDamping = true;
+// const controls = new OrbitControls(camera, canvas);
+// controls.enableDamping = true;
 
 /**
  * Renderer
@@ -145,7 +168,14 @@ const animate = () => {
   //時間取得
   const elapsedTime = clock.getElapsedTime();
   material.uniforms.uTime.value = elapsedTime;
-  controls.update();
+
+  // カメラを円周上に周回させる
+  camera.position. x = Math.sin(elapsedTime * 0.17) * 3.0;
+  camera.position.z = Math.cos(elapsedTime * 0.17) * 3.0;
+
+  camera.lookAt(Math.cos(elapsedTime), Math.sin(elapsedTime) * 0.5, Math.sin(elapsedTime) * 0.4);
+
+  // controls.update();
 
   renderer.render(scene, camera);
 
